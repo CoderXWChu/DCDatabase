@@ -38,10 +38,10 @@ Use DCDatabase, Just need one code to achieve  cache models.
 
 ```objc
 // 哪个线程调用，在哪个线程执行
-[[DCDatabase shareInstance] saveToDatabaseWithArray:datas autoRollback:YES];
+[[DCDatabase shareInstance] saveToDatabaseWithArray:models autoRollback:YES];
 
 // 子线程调用
-[[DCDatabase shareInstance] saveToDatabaseWithArray:datas autoRollback:YES callBack:^(BOOL isFinish) {
+[[DCDatabase shareInstance] saveToDatabaseWithArray:models autoRollback:YES callBack:^(BOOL isFinish) {
     if (isFinish) {
         NSLog(@"保存模型数据到本地数据库成功！:)");
     }else {
@@ -60,7 +60,7 @@ Use DCDatabase, Just need one code to achieve  cache models.
 
 ```objc
 // 获取所有本地数据
-[[DCDatabase shareInstance] getAllWithClassName:NSStringFromClass(DCModel.class) callBack:^(NSArray * _Nullable datas) {
+[[DCDatabase shareInstance] getAllWithClassName:NSStringFromClass(DCModel.class) callBack:^(NSArray * _Nullable models) {
 
 }];
 
