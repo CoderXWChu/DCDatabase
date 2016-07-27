@@ -439,8 +439,7 @@
     
     if (!tableColumnFlag) {
         tableColumnFlag = YES;
-        NSString *text = [NSString stringWithFormat:@"[Error] : Get recode failed , because the count of [table - %@] 's column is changed, this table must be abandoned . please delete this table first.", classname];
-        NSAssert(sqlite3_column_count(stmt) == count + 1, text);
+        NSAssert(sqlite3_column_count(stmt) == count + 1, @"[Error] : Get recode failed , because the count of [table] 's column is changed, this table must be abandoned . please delete this table first.");
     }
     
     for (int i = 1; i < count + 1; i++) {
