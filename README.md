@@ -22,6 +22,18 @@ Use DCDatabase, Just need one code to achieve  cache models.
 使用
 ==============
 
+###忽略部分属性
+```objc
+// 导入头文件 DCDatabase.h 或  NSObject+Database.h
+// 在模型.m 文件中实现方法 ,返回不需要存储的属性数组;
+
+- (NSArray *)dc_ignorePropertys
+{
+    return @[@"creattime", @"imagePath"];
+}
+
+```
+
 ###保存模型数据到本地数据库
 
 ```objc
