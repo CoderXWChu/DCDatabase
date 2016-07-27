@@ -48,12 +48,12 @@ Use DCDatabase, Just need one code to achieve  cache models.
 
 ```objc
 // 获取所有本地数据
-[[DCDatabase shareInstance] getAllWithClassName:NSStringFromClass(DCCourseModel.class) callBack:^(NSArray * _Nullable datas) {
+[[DCDatabase shareInstance] getAllWithClassName:NSStringFromClass(DCModel.class) callBack:^(NSArray * _Nullable datas) {
 
 }];
 
 // 获取根据模型某属性进行排序后的数据
-[[DCDatabase shareInstance] getDataWithClassName:NSStringFromClass(DCCourseModel.class) attribute:KEYPATH(self.model, createtime) isRise:YES callBack:^(NSArray * _Nullable models) {
+[[DCDatabase shareInstance] getDataWithClassName:NSStringFromClass(DCModel.class) attribute:KEYPATH(self.model, createtime) isRise:YES callBack:^(NSArray * _Nullable models) {
     self.tableViewModel.dataSource = [NSMutableArray arrayWithArray:models];
     [self.tableView reloadData];
 }];
@@ -65,7 +65,7 @@ Use DCDatabase, Just need one code to achieve  cache models.
 ```objc
 
 // 删除所有数据
-[[DCDatabase shareInstance] removeAllWithClassName:NSStringFromClass(DCCourseModel.class) callBack:^(BOOL result) {
+[[DCDatabase shareInstance] removeAllWithClassName:NSStringFromClass(DCModel.class) callBack:^(BOOL result) {
 
 }];
 
