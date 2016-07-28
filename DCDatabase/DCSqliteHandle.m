@@ -64,7 +64,7 @@
         stmts = CFDictionaryCreateMutable(CFAllocatorGetDefault(), 0, &keyCallbacks, &valueCallbacks);
         return YES;
     }
-    NSLog(@"%s line:%d sqlite open failed.", __FUNCTION__, __LINE__);
+    NSLog(@"%s line:%d sqlite open failed: %s.", __FUNCTION__, __LINE__, sqlite3_errmsg(*database));
     *database = 0x00;
     return NO;
 }
@@ -95,7 +95,7 @@
             }
         }
         else if (SQLITE_OK != result) {
-            NSLog(@"%s line:%d sqlite close failed.", __FUNCTION__, __LINE__);
+            NSLog(@"%s line:%d sqlite close failed: %s .", __FUNCTION__, __LINE__, sqlite3_errmsg(database));
         }
     }
     while (retry);
@@ -114,7 +114,7 @@
     NSError *error = nil;
     [[NSFileManager defaultManager] removeItemAtPath:filePath error:&error];
     if (error) {
-        NSLog(@"%s line:%d  remove database failed.", __FUNCTION__, __LINE__);
+        NSLog(@"%s line:%d  remove database failed: %@.", __FUNCTION__, __LINE__, error.localizedDescription);
         return NO;
     }
     [tables removeAllObjects];
@@ -143,6 +143,7 @@
         sqlite3_finalize(stmt);
         return count == 1;
     }
+    NSLog(@"%s line:%d checkout the table %@ isExists failed: %s.", __FUNCTION__, __LINE__, tableName, sqlite3_errmsg(database));
     sqlite3_finalize(stmt);
     return NO;
 }
@@ -171,7 +172,7 @@
             }
         }
         else if (SQLITE_OK != result) {
-            NSLog(@"error closing!: %d", result);
+            NSLog(@"checkout the rows of table t_%@ failed: %s : %@.", classname, sqlite3_errmsg(database), retry ? @"将再次尝试": @"");
         }else{
             while(sqlite3_step(stmt) == SQLITE_ROW){
                 count = (NSUInteger)sqlite3_column_int(stmt, 0);
@@ -190,7 +191,7 @@
     NSString *sqlString = [self dc_sqlStringForCreatTableWithClassName:classname];
     BOOL flag = [self executeSqlString:sqlString database:database];
     if (!flag) {
-        NSLog(@"%s line:%d sqlite creat table (t_%@) failed.", __FUNCTION__, __LINE__, classname);
+        NSLog(@"%s line:%d sqlite creat table (t_%@) failed: %s", __FUNCTION__, __LINE__, classname, sqlite3_errmsg(database));
     }
     return flag;
 }
@@ -344,7 +345,7 @@
         return YES;
     }else
     {
-        NSLog(@"%s line:%d sqlite query error (%d): %s", __FUNCTION__, __LINE__, flag, sqlite3_errmsg(database));
+        NSLog(@"%s line:%d sqlite SQL string [%@] error (%d): %s", __FUNCTION__, __LINE__, sqlString, flag, sqlite3_errmsg(database));
         return NO;
     }
 }
@@ -390,7 +391,7 @@
                          className:(NSString *)className;
 {
     if (![self openDatabase:&database]) {
-        NSLog(@"[Error] : try to open database failed！");
+        NSLog(@"[Error] : execute SQL Query string failed, because open database failed！");
         return nil;
     }
     sqlite3_stmt *stmt;
