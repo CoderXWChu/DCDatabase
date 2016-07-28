@@ -246,13 +246,6 @@
             double value = [(NSNumber *)[object valueForKeyPath:name] doubleValue];
             sqlite3_bind_double(stmt, i+1, value);
             
-        }else if ([type isEqualToString:@"BLOB"]) {
-            NSData *data = [object valueForKeyPath:name];
-            if (data.length > 0) {
-                sqlite3_bind_blob(stmt, i+1, data.bytes, (int)data.length, NULL);
-            }else{
-                sqlite3_bind_blob(stmt, i+1, NULL, 0, NULL);
-            }
         }else if ([type isEqualToString:@"ARRAY"] ||
                   [type isEqualToString:@"DICTIONARY"]) {
             
@@ -263,6 +256,13 @@
                 sqlite3_bind_text(stmt, i+1, value.UTF8String, -1, NULL);
             }else{
                 sqlite3_bind_text(stmt, i+1, NULL, 0, NULL);
+            }
+        }else if ([type isEqualToString:@"BLOB"]) {
+            NSData *data = [object valueForKeyPath:name];
+            if (data.length > 0) {
+                sqlite3_bind_blob(stmt, i+1, data.bytes, (int)data.length, NULL);
+            }else{
+                sqlite3_bind_blob(stmt, i+1, NULL, 0, NULL);
             }
         }
     }
@@ -450,15 +450,7 @@
         NSString *type = propertyDict[propertyName];
         id value = nil;
         
-        if ([type isEqualToString:@"INTEGER"]) {
-            value = [NSString stringWithFormat:@"%i",sqlite3_column_int(stmt,i)];
-        }else if ([type isEqualToString:@"REAL"]) {
-            value = [NSString stringWithFormat:@"%f",sqlite3_column_double(stmt,i)];
-        }else if ([type isEqualToString:@"BLOB"]) {
-            const void *data = sqlite3_column_blob(stmt,i);
-            int length = sqlite3_column_bytes(stmt, i);
-            value = [NSData dataWithBytes:data length:length];
-        }else if ([type isEqualToString:@"TEXT"]) {
+        if ([type isEqualToString:@"TEXT"]) {
             char *text = (char *)sqlite3_column_text(stmt,i);
             if (text) {
                 value = [[NSString alloc] initWithUTF8String:text];
@@ -473,6 +465,14 @@
                          [(NSString *)value dataUsingEncoding:NSUTF8StringEncoding]
                                                         options:NSJSONReadingMutableContainers error:nil];
             }
+        }else if ([type isEqualToString:@"INTEGER"]) {
+            value = [NSString stringWithFormat:@"%i",sqlite3_column_int(stmt,i)];
+        }else if ([type isEqualToString:@"REAL"]) {
+            value = [NSString stringWithFormat:@"%f",sqlite3_column_double(stmt,i)];
+        }else if ([type isEqualToString:@"BLOB"]) {
+            const void *data = sqlite3_column_blob(stmt,i);
+            int length = sqlite3_column_bytes(stmt, i);
+            value = [NSData dataWithBytes:data length:length];
         }
         [tempDict setValue:value forKey:propertyName];
     }
