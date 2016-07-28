@@ -345,7 +345,8 @@
         return YES;
     }else
     {
-        NSLog(@"%s line:%d sqlite SQL string [%@] error (%d): %s", __FUNCTION__, __LINE__, sqlString, flag, sqlite3_errmsg(database));
+        NSLog(@"%s line:%d sqlite SQL string [%@] error (%d): %s", __FUNCTION__, __LINE__, sqlString, flag, error);
+        sqlite3_free(error);
         return NO;
     }
 }
