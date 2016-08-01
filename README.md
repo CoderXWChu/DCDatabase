@@ -23,9 +23,12 @@ Use DCDatabase, Just need one code to achieve  cache models.
 ==============
 
 ###忽略部分属性
+
+DCDatabase的作用是把网络请求下来的模型数据缓存到本地数据库, 模型中部分不需要缓存的成员变量,我们可以通过分类方法`- dc_ignorePropertys` 来忽略掉.
+
 ```objc
-// 导入头文件 DCDatabase.h 或  NSObject+Database.h
-// 在模型.m 文件中实现方法 ,返回不需要存储的属性数组;
+// 1.在模型.m 文件中导入头文件 DCDatabase.h 或  NSObject+Database.h
+// 2.实现下列方法 ,返回不需要存储的属性数组;
 
 - (NSArray *)dc_ignorePropertys
 {
@@ -38,9 +41,20 @@ Use DCDatabase, Just need one code to achieve  cache models.
 
 ```objc
 // 哪个线程调用，在哪个线程执行
+// 缓存一个 model
+[[DCDatabase shareInstance] saveToDatabaseWithObject:model];
+// 缓存模型数组
 [[DCDatabase shareInstance] saveToDatabaseWithArray:models autoRollback:YES];
 
 // 子线程调用
+[[DCDatabase shareInstance] saveToDatabaseWithObject:model callBack:^(BOOL isFinish) {
+    if (isFinish) {
+        NSLog(@"保存模型数据到本地数据库成功！:)");
+    }else {
+        NSLog(@"保存模型数据到本地数据库失败！:(");
+    }
+}];
+
 [[DCDatabase shareInstance] saveToDatabaseWithArray:models autoRollback:YES callBack:^(BOOL isFinish) {
     if (isFinish) {
         NSLog(@"保存模型数据到本地数据库成功！:)");
@@ -49,10 +63,29 @@ Use DCDatabase, Just need one code to achieve  cache models.
     }
 }];
 
+
 // 刷新数据库模型数据，将本地数据库模型数据删除后，再执行保存操作
 [[DCDatabase shareInstance] refreshDataWithArray:self.dataSource autoRollback:NO callBack:^(BOOL isFinish) {
 
 }];
+
+// 例: 
+[manager GET:requestURL parameters:parameters progress:nil
+success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+
+    NSArray *objs = (NSArray *)responseObject[@"result"];
+    self.dataSource  = [[NSMutableArray alloc] initWithArray:[[DCCourseModel mj_objectArrayWithKeyValuesArray:objs] copy]];
+
+    [[DCDatabase shareInstance] refreshDataWithArray:self.dataSource autoRollback:NO callBack:^(BOOL isFinish) {
+
+    }];
+}
+failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+
+// .... 
+
+}];
+
 
 ```
 
