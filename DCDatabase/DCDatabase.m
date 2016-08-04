@@ -106,23 +106,12 @@ static DCDatabase *_instance;
 
 - (BOOL)saveToDatabaseWithObject:(id)object
 {
-    if (![self openDatabase]) return NO;
-    dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-    BOOL flag = [sqliteHandle insertDataWithObject:object database:db];
-    dispatch_semaphore_signal(lock);
-    return flag;
+    return [self saveToDatabaseWithArray:@[object] autoRollback:YES];
 }
 
 - (void)saveToDatabaseWithObject:(id)object callBack:(DCDatabaseUnQueryHandle)callback
 { 
-    dispatch_async(queue, ^{
-        BOOL flag =[self saveToDatabaseWithObject:object];
-        if (callback) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                callback(flag);
-            });
-        }    
-    });
+    [self saveToDatabaseWithArray:@[object] autoRollback:YES callBack:callback];
 }
 
 - (BOOL)saveToDatabaseWithArray:(NSArray *)models autoRollback:(BOOL)isRollback
