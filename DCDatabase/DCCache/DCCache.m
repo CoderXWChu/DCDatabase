@@ -51,13 +51,21 @@
 
 + (BOOL)setFile:(NSData *)fileData forKey:(NSString *)key
 {
+    return [self setFile:fileData forKey:key withName:nil type:nil];
+}
+
++ (BOOL)setFile:(NSData *)fileData
+         forKey:(NSString *)key
+       withName:(NSString *)name
+           type:(NSString *)type
+{
     if(!key || key.length==0) return NO;
     if (!fileData || fileData.length == 0) {
         // removeItem
         return [self removeObjectForKey:key];
     }
     if ([self fileForKey:key]) [self removeFileForKey:key];
-    DCCacheItem *item = [[DCCacheItem alloc]initWithData:fileData key:key];
+    DCCacheItem *item = [[DCCacheItem alloc]initWithData:fileData key:key name:name type:type];
     return [[DCDatabase shareInstance] saveToDatabaseWithObject:item];
 }
 
@@ -74,6 +82,21 @@
 
 + (id)objectForKey:(NSString *)key
 {
+    DCCacheItem *item = [self objectItemForKey:key];
+    id value = nil;
+    @try {
+        value = [NSKeyedUnarchiver unarchiveObjectWithData:[item data]];
+    } @catch (NSException *exception) {
+        // to do nothing...
+    }
+    if (!value) {
+        value = [item data];
+    }
+    return value;
+}
+
++ (DCCacheItem *)objectItemForKey:(NSString *)key
+{
     NSArray *items = [[DCDatabase shareInstance]getDataWithClassName:NSStringFromClass(DCCacheItem.class) condition:[NSString stringWithFormat:@"key =='%@'", key]];
     if (!items || items.count == 0) {
         return nil;
@@ -81,19 +104,11 @@
         [self removeFileForKey:key];
         return nil;
     }
-    id value = nil;
-    @try {
-        value = [NSKeyedUnarchiver unarchiveObjectWithData:[[items firstObject] data]];
-    } @catch (NSException *exception) {
-        // to do nothing...
-    }
-    if (!value) {
-        value = [[items firstObject] data];
-    }
-    return value;
+    return [items firstObject];
 }
 
-+ (DCCacheItem *)fileForKey:(NSString *)key
+
++ (DCCacheItem *)fileItemForKey:(NSString *)key
 {
     NSArray <DCCacheItem *>*items = [[DCDatabase shareInstance]getDataWithClassName:NSStringFromClass(DCCacheItem.class) condition:[NSString stringWithFormat:@"key == '%@'", key]];
     if (!items || items.count == 0) {
@@ -105,6 +120,11 @@
     return [items firstObject];
 }
 
++ (NSData *)fileForKey:(NSString *)key
+{
+    DCCacheItem *fileItem = [self fileItemForKey:key];
+    return fileItem ? fileItem.data : nil;
+}
 
 @end
 

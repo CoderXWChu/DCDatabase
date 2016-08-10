@@ -25,21 +25,93 @@
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+//============================================================
+// DCCache 是基于 DCDatabse 的缓存类, 你可以使用它完成对 支持<NSCoding>
+// 协议的 对象 或者 文件数据 进行缓存和提取;
+// 你可以使用 NSObject+DCAutoCoding 分类很方便的完成对 NSCoding 的支持;
+//============================================================
+
+
 @class DCCacheItem;
 
 @interface DCCache : NSObject
 
+#pragma mark - 缓存 对象/文件数据
+/*!
+ *  缓存支持<NSCoding>协议的对象
+ *  @param object 支持<NSCoding>协议的对象
+ *  @param key    该对象对应的 key
+ *  @return  是否成功
+ */
 + (BOOL)setObject:(id<NSCoding>)object forKey:(NSString *)key;
+/*!
+ *  缓存文件数据到数据库
+ *  @param fileData 文件数据
+ *  @param key  该文件数据对应的 key
+ *  @return  是否成功
+ */
 + (BOOL)setFile:(NSData *)fileData forKey:(NSString *)key;
 
-+ (id)objectForKey:(NSString *)key;
-+ (DCCacheItem *)fileForKey:(NSString *)key;
+/*!
+ *  缓存文件数据到数据库
+ *  @param fileData 文件数据
+ *  @param key      key
+ *  @param name     文件名称
+ *  @param type     文件类型
+ *  @return 是否成功
+ */
++ (BOOL)setFile:(NSData *)fileData
+         forKey:(NSString *)key
+       withName:(NSString * _Nullable )name
+           type:(NSString * _Nullable )type;
 
+#pragma mark - 提取
+
+/*!
+ *  根据 key 从数据库提取缓存的对象
+ *  @param key 存储对象时设置的 key
+ *  @return  缓存的对象
+ */
++ (id)objectForKey:(NSString *)key;
+
+/*!
+ *  根据 key 从数据库提取缓存的文件数据
+ *  @param key  存储文件数据时对应的 key
+ *  @return 返回文件数据
+ */
++ (NSData *)fileForKey:(NSString *)key;
+
+
+/*!
+ *  根据 key 从数据库提取缓存的对象模型
+ *  @param key 存储对象时设置的 key
+ *  @return  缓存的对象模型
+ */
++ (DCCacheItem *)objectItemForKey:(NSString *)key;
+
+/*!
+ *  根据 key 从数据库提取缓存的文件数据模型
+ *  @param key  存储文件数据时对应的 key
+ *  @return 返回文件数据模型
+ */
++ (DCCacheItem *)fileItemForKey:(NSString *)key;
+
+#pragma mark - 移除缓存
+
+/*!
+ *  根据 key 移除缓存的对象
+ *  @return 是否成功
+ */
 + (BOOL)removeObjectForKey:(NSString *)key;
+/*!
+ *  根据 key 移除缓存的文件数据
+ *  @return 是否成功
+ */
 + (BOOL)removeFileForKey:(NSString *)key;
 
-@end
 
+@end
 
 @interface DCCacheItem : NSObject
 
