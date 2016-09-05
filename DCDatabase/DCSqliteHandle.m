@@ -27,19 +27,24 @@
 
 @implementation DCSqliteHandle
 {
+    NSString *username;
     const char *sqlitePath;
     NSMutableDictionary *tables;
     CFMutableDictionaryRef stmts;
     BOOL tableColumnFlag;
 }
 
-- (instancetype)init{
+
+- (instancetype)initWithUsername:(NSString *)userName
+{
     if (self = [super init]) {
+        username = userName;
         tables = [[NSMutableDictionary alloc]initWithCapacity:0];
         tableColumnFlag = NO;
     }
     return self;
 }
+
 
 ///< 打开数据库
 - (BOOL)openDatabase:(sqlite3 **)database
@@ -507,10 +512,18 @@
 - (NSString *)filePath
 {
     NSString *filename = [[NSBundle mainBundle].infoDictionary
-                          valueForKey:(NSString *)kCFBundleNameKey] ;
+                          valueForKey:(NSString *)kCFBundleNameKey];
     filename = [NSString stringWithFormat:@"%@.db",filename];
-    NSString *filePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject
-                          stringByAppendingPathComponent:[filename lastPathComponent]];
+    NSString *filePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject;
+    filePath = [filePath stringByAppendingPathComponent:@"DCDatabase"];
+    if(username && ![username isEqualToString:@""])
+    {
+        filePath = [filePath stringByAppendingPathComponent:username];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+            [[NSFileManager defaultManager] createDirectoryAtPath:filePath withIntermediateDirectories:YES attributes:nil error:nil];
+        }
+    }
+    filePath = [filePath stringByAppendingPathComponent:[filename lastPathComponent]];
     return filePath;
 }
 

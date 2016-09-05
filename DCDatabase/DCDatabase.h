@@ -29,6 +29,10 @@
 #define KEYPATH(obj,keyPath) @(((void)obj.keyPath, #keyPath))
 #endif
 
+#ifndef ShareDCDatabase
+#define ShareDCDatabase [DCDatabase shareInstance]
+#endif
+
 NS_ASSUME_NONNULL_BEGIN
 
 //============================================================
@@ -62,6 +66,17 @@ typedef void (^DCDatabaseUnQueryHandle)(BOOL isFinish);
 
 - (instancetype)init UNAVAILABLE_ATTRIBUTE;
 + (instancetype)new UNAVAILABLE_ATTRIBUTE;
+
+/*!
+ *  
+ *  多用户情况下的的实例方法
+ *  @brief 首次使用 DCDatabase 时, 请调用 +shareInstanceWithUserName: 创建实例对象
+ *         其余情况，使用 +shareInstance;即可
+ *  @param username 用户名
+ *
+ *  @return DCDatabase实例
+ */
++ (instancetype)shareInstanceWithUserName:(NSString *)username;
 
 + (instancetype)shareInstance;
 

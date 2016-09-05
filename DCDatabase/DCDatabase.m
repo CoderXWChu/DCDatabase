@@ -31,28 +31,37 @@ static DCDatabase *_instance;
 @implementation DCDatabase
 {
     sqlite3 *db;
+    NSString *username;
     dispatch_semaphore_t lock;
     dispatch_queue_t queue;
     DCSqliteHandle *sqliteHandle;
 }
 
-- (instancetype)init
+- (instancetype)initWithUsername:(NSString *)userName
 {
     self = [super init];
     if (self) {
+        username = userName;
         lock = dispatch_semaphore_create(1);
         queue = dispatch_queue_create("com.DCDatabase.queue", DISPATCH_QUEUE_CONCURRENT);
-        sqliteHandle = [[DCSqliteHandle alloc]init];
+        sqliteHandle = [[DCSqliteHandle alloc]initWithUsername:userName];
     }
     return self;
 }
 
-+ (instancetype)shareInstance
++ (instancetype)shareInstanceWithUserName:(NSString *)username
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _instance = [[[self class] alloc] init];
+        _instance = [[[self class] alloc] initWithUsername:username];
     });
+    return _instance;
+}
+
++ (instancetype)shareInstance
+{
+    if(!_instance)
+        return [self shareInstanceWithUserName:@""];
     return _instance;
 }
 
@@ -129,13 +138,14 @@ static DCDatabase *_instance;
                 for (id obj in copyModels) {
                     flag = [sqliteHandle insertDataWithObject:obj database:db];
                     if (!flag) {
-                        @throw [NSException exceptionWithName:@"数据处理错误！" reason:@"-insertDataWithObject:database:执行错误" userInfo: nil];
+                        @throw [NSException exceptionWithName:@"数据插入操作失败！" reason:@"-insertDataWithObject:database:操作不成功" userInfo: nil];
                     }
                 }
             }
             sqlite3_exec(db, "COMMIT", nil, nil, nil);
         } @catch (NSException *exception) {
             sqlite3_exec(db, "ROLLBACK", nil, nil, nil);
+            NSLog(@"%@",exception);
         } @finally {}
     }else
     {
@@ -155,7 +165,7 @@ static DCDatabase *_instance;
 - (void)saveToDatabaseWithArray:(NSArray *)models autoRollback:(BOOL)isRollback callBack:(DCDatabaseUnQueryHandle)callback
 {
     dispatch_async(queue, ^{     
-        BOOL flag =[self saveToDatabaseWithArray:models autoRollback:isRollback];
+        BOOL flag = [self saveToDatabaseWithArray:models autoRollback:isRollback];
         if (callback) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 callback(flag);
@@ -192,7 +202,20 @@ static DCDatabase *_instance;
 {
     if (![self openDatabase]) return NO;
     dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-    BOOL flag = [sqliteHandle updateDataWithClassName:classname database:db attribute:attribute toValue:toValue condition:conditionString];
+    BOOL flag;
+    @try {
+        if(SQLITE_OK == sqlite3_exec(db, "BEGIN", nil, nil, nil))
+        {
+            flag = [sqliteHandle updateDataWithClassName:classname database:db attribute:attribute toValue:toValue condition:conditionString];
+            if (!flag) {
+                @throw [NSException exceptionWithName:@"数据更新执行失败！" reason:@"-updateDataWithClassName:database:attribute:toValue:condition:操作不成功" userInfo: nil];
+            }
+        }
+        sqlite3_exec(db, "COMMIT", nil, nil, nil);
+    } @catch (NSException *exception) {
+        sqlite3_exec(db, "ROLLBACK", nil, nil, nil);
+        NSLog(@"%@",exception);
+    }
     dispatch_semaphore_signal(lock);
     return flag;
 }
@@ -215,7 +238,20 @@ static DCDatabase *_instance;
 {
     if (![self openDatabase]) return NO;
     dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-    BOOL flag = [sqliteHandle deleteDataWithClassName:classname database:db condition:conditionString];
+    BOOL flag;
+    @try {
+        if(SQLITE_OK == sqlite3_exec(db, "BEGIN", nil, nil, nil))
+        {
+            flag = [sqliteHandle deleteDataWithClassName:classname database:db condition:conditionString];
+            if (!flag) {
+                @throw [NSException exceptionWithName:@"数据删除执行失败！" reason:@"-deleteDataWithClassName:database:condition:操作不成功" userInfo: nil];
+            }
+        }
+        sqlite3_exec(db, "COMMIT", nil, nil, nil);
+    } @catch (NSException *exception) {
+        sqlite3_exec(db, "ROLLBACK", nil, nil, nil);
+        NSLog(@"%@",exception);
+    }
     dispatch_semaphore_signal(lock);
     return flag;
 }
@@ -234,7 +270,6 @@ static DCDatabase *_instance;
 }
 
 
-
 - (BOOL)removeAllWithClassName:(NSString *)classname
 {
     if (![self openDatabase]) return NO;
@@ -246,7 +281,7 @@ static DCDatabase *_instance;
 
 - (void)removeAllWithClassName:(NSString *)classname callBack:(DCDatabaseUnQueryHandle)callback
 { 
-    dispatch_async(queue, ^{     
+    dispatch_async(queue, ^{
         BOOL flag =[self removeAllWithClassName:classname];
         if (callback) {
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -256,13 +291,24 @@ static DCDatabase *_instance;
     });
 }
 
-
-
 - (BOOL)deleteTableWithClassName:(NSString *)classname
 {
     if (![self openDatabase]) return NO;
     dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);
-    BOOL flag = [sqliteHandle delteTableWithClassName:classname database:db];
+    BOOL flag;
+    @try {
+        if(SQLITE_OK == sqlite3_exec(db, "BEGIN", nil, nil, nil))
+        {
+            flag = [sqliteHandle delteTableWithClassName:classname database:db];
+            if (!flag) {
+                @throw [NSException exceptionWithName:@"数据删除执行失败！" reason:@"-delteTableWithClassName:database:操作不成功" userInfo: nil];
+            }
+        }
+        sqlite3_exec(db, "COMMIT", nil, nil, nil);
+    } @catch (NSException *exception) {
+        sqlite3_exec(db, "ROLLBACK", nil, nil, nil);
+        NSLog(@"%@",exception);
+    }
     dispatch_semaphore_signal(lock);
     return flag;
 }
@@ -270,7 +316,7 @@ static DCDatabase *_instance;
 - (void)deleteTableWithClassName:(NSString *)classname callBack:(DCDatabaseUnQueryHandle)callback
 { 
     dispatch_async(queue, ^{     
-        BOOL flag =[self deleteTableWithClassName:classname];
+        BOOL flag = [self deleteTableWithClassName:classname];
         if (callback) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 callback(flag);

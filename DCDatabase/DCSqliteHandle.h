@@ -29,6 +29,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface DCSqliteHandle : NSObject
 
+
++ (instancetype)new UNAVAILABLE_ATTRIBUTE;
+- (instancetype)init UNAVAILABLE_ATTRIBUTE;
+
+- (instancetype)initWithUsername:(NSString *)userName;
+
 /*!
  *  打开数据库句柄
  *  @param database 数据库句柄
