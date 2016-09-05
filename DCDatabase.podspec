@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "DCDatabase"
-  s.version      = "0.0.7"
+  s.version      = "0.0.8"
   s.summary      = "cache model to local database for iOS"
 
   # This description is used to generate tags and improve search results.
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/CoderXWChu/DCDatabase.git", :tag => "0.0.7" }
+  s.source       = { :git => "https://github.com/CoderXWChu/DCDatabase.git", :tag => "0.0.8" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
