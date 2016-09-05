@@ -516,15 +516,21 @@
     filename = [NSString stringWithFormat:@"%@.db",filename];
     NSString *filePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject;
     filePath = [filePath stringByAppendingPathComponent:@"DCDatabase"];
+    [self creatDirectoryWithPath:filePath];
     if(username && ![username isEqualToString:@""])
     {
         filePath = [filePath stringByAppendingPathComponent:username];
-        if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-            [[NSFileManager defaultManager] createDirectoryAtPath:filePath withIntermediateDirectories:YES attributes:nil error:nil];
-        }
+        [self creatDirectoryWithPath:filePath];
     }
     filePath = [filePath stringByAppendingPathComponent:[filename lastPathComponent]];
     return filePath;
+}
+
+- (void)creatDirectoryWithPath:(NSString *)filePath
+{
+    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:filePath withIntermediateDirectories:YES attributes:nil error:nil];
+    }
 }
 
 
